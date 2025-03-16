@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MoniePointShippingTracker</string>
+    <string name="search_bar_placeholder">Enter the receipt number ...</string>
+</resources>
