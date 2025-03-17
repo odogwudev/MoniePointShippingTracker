@@ -76,7 +76,7 @@ https://github.com/user-attachments/assets/cfcab653-4f87-480a-8458-5a3042745434
 
 You can install or test the app by downloading the APK file directly:
 
-[**demo.apk**](https://github.com/odogwudev/MoniePointShippingTracker/blob/7984ef703b4ff579f583b23328a6ac370f5816de/demo.apk)
+[**demo.apk**](https://github.com/odogwudev/MoniePointShippingTracker/blob/7984ef703b4ff579f583b23328a6ac370f5816de/demo1.apk)
 
 ---
 
