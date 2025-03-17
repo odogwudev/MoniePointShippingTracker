@@ -1,5 +1,13 @@
 package com.odogwudev.moniepointshippingtracker.ui.shipment
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +93,15 @@ fun ShipmentHistoryScreen(
     val pagerState = rememberPagerState(pageCount = { tabItems.size })
     val scope = rememberCoroutineScope()
 
+    var isContentVisible by remember { mutableStateOf(false) }
+    var isCustomRowVisible by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect("") {
+        isContentVisible = true
+        isCustomRowVisible = true
+    }
+
 
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onStatusSelected(tabItems[pagerState.currentPage].first)
@@ -123,66 +140,99 @@ fun ShipmentHistoryScreen(
                     .background(Color.White)
                     .fillMaxSize()
             ) {
-                ScrollableTabRow(
-                    edgePadding = 0.dp,
-                    selectedTabIndex = pagerState.currentPage,
-                    backgroundColor = Color(0xFF6A1B9A),
-                    contentColor = Color.White
+                AnimatedVisibility(
+                    visible = isCustomRowVisible,
+                    enter = slideInHorizontally(
+                        initialOffsetX = { w -> w },
+                        animationSpec = tween(durationMillis = 800)) + fadeIn(
+                        tween(800),
+                    ),
+                    exit = slideOutHorizontally(tween(durationMillis = 800)) + fadeOut(tween(800))
                 ) {
-                    tabItems.forEachIndexed { index, pair ->
-                        val (status, tabTitle) = pair
-                        val count = statusCounts.getOrElse(index) { 0 }
-                        val isSelected = (pagerState.currentPage == index)
+                    ScrollableTabRow(
+                        edgePadding = 0.dp,
+                        selectedTabIndex = pagerState.currentPage,
+                        backgroundColor = Color(0xFF6A1B9A),
+                        contentColor = Color.White
+                    ) {
+                        tabItems.forEachIndexed { index, pair ->
+                            val (status, tabTitle) = pair
+                            val count = statusCounts.getOrElse(index) { 0 }
+                            val isSelected = (pagerState.currentPage == index)
 
-                        Tab(
-                            selected = isSelected,
-                            onClick = {
-                                scope.launch { pagerState.animateScrollToPage(index) }
-                                viewModel.onStatusSelected(status)
-                            },
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .background(
-                                                color = if (isSelected) Color(0xFFFF9800) else Color(0xFFE1BEE7),
-                                                shape = CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                            Tab(
+                                selected = isSelected,
+                                onClick = {
+                                    scope.launch { pagerState.animateScrollToPage(index) }
+                                    viewModel.onStatusSelected(status)
+                                },
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .background(
+                                                    color = if (isSelected) Color(0xFFFF9800) else Color(
+                                                        0xFFE1BEE7
+                                                    ),
+                                                    shape = CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = count.toString(),
+                                                fontSize = 12.sp,
+                                                color = if (isSelected) Color.White else Color(
+                                                    0xFF6A1B9A
+                                                )
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = count.toString(),
-                                            fontSize = 12.sp,
-                                            color = if (isSelected) Color.White else Color(0xFF6A1B9A)
+                                            text = tabTitle,
+                                            color = if (isSelected) Color.White else Color(
+                                                0xFFE1BEE7
+                                            ),
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = tabTitle,
-                                        color = if (isSelected) Color.White else Color(0xFFE1BEE7),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
+                AnimatedVisibility(
+                    visible = isContentVisible,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ) + fadeIn(
+                        initialAlpha = 0f,
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ),
+                    exit = slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ) + fadeOut(
+                        targetAlpha = 0f,
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ),
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        val (status, _) = tabItems[page]
+                        val filtered = shipments.filter { it.status == status || status == null }
 
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    val (status, _) = tabItems[page]
-                    val filtered = shipments.filter { it.status == status || status == null }
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        itemsIndexed  (filtered) {index, shipment ->
-                            ShipmentCard(shipment)
-                            Spacer(modifier = Modifier.height(16.dp))
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            itemsIndexed(filtered) { index, shipment ->
+                                ShipmentCard(shipment)
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }

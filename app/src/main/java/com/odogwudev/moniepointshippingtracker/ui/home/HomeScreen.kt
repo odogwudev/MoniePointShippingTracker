@@ -1,6 +1,7 @@
 package com.odogwudev.moniepointshippingtracker.ui.home
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -8,7 +9,13 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.ArcMode
 import androidx.compose.animation.core.ExperimentalAnimationSpecApi
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -84,7 +91,7 @@ fun HomeScreen(
     onNavigateToShipmentHistory: () -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
-    val trackingItems = remember {
+    val trackingItems =
         listOf(
             TrackingInfo(
                 shipmentNumber = "#NE43857340857904",
@@ -92,16 +99,10 @@ fun HomeScreen(
                 receiver = "Chicago, 6342",
                 time = "2-3 days",
                 status = "In Transit"
-            ),
-            TrackingInfo(
-                shipmentNumber = "#NE43857340857905",
-                sender = "New York, 2244",
-                receiver = "San Francisco, 9898",
-                time = "3-5 days",
-                status = "Delayed"
             )
+
         )
-    }
+    var isListVisible by remember { mutableStateOf(false) }
 
     val vehicles = remember {
         listOf(
@@ -161,17 +162,33 @@ fun HomeScreen(
             }
 
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                AnimatedVisibility(
+                    visible = isListVisible,
+                    enter = slideInHorizontally(
+                        initialOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ) + fadeIn(
+                        initialAlpha = 0f,
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ),
+                    exit = slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ) + fadeOut(
+                        targetAlpha = 0f,
+                        animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                    ),
                 ) {
-                    vehicles.forEach { vehicle ->
-                        VehicleCard(vehicle, sharedTransitionScope, animatedVisibilityScope)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        itemsIndexed (vehicles) { index, vehicle ->
+                            VehicleCard(vehicle, sharedTransitionScope, animatedVisibilityScope)
+                        }
                     }
                 }
             }
+        }
+        LaunchedEffect("") {
+            isListVisible = true
         }
     }
 }
@@ -453,7 +470,7 @@ fun TrackingCard(info: TrackingInfo, modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(   Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -481,7 +498,7 @@ fun TrackingCard(info: TrackingInfo, modifier: Modifier = Modifier) {
                         )
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(   Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
 
                     Box(
                         modifier = Modifier
@@ -514,7 +531,7 @@ fun TrackingCard(info: TrackingInfo, modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(   Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -542,8 +559,10 @@ fun TrackingCard(info: TrackingInfo, modifier: Modifier = Modifier) {
                         )
                     }
                 }
+
                 // Right side: status
-                Column(horizontalAlignment = Alignment.Start) {
+                Column(   Modifier.weight(1f).padding(start = 8.dp),horizontalAlignment = Alignment.Start) {
+
                     Text(
                         text = "Status",
                         color = Color.Gray,

@@ -1,5 +1,13 @@
 package com.odogwudev.moniepointshippingtracker.ui.search
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -85,27 +93,58 @@ fun SearchScreen(
             if (searchResults.isEmpty()) {
                 ShippingEmptyState()
             } else {
-                Card(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    elevation = 1.dp,
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.padding(16.dp)
+                AnimatedContent(targetState = searchResults, label = "", transitionSpec = {
+                    ContentTransform(
+                        targetContentEnter = slideInVertically(
+                            initialOffsetY = { fullHeight -> fullHeight },
+                            animationSpec = tween(
+                                durationMillis = 1000,
+                                easing = LinearOutSlowInEasing
+                            )
+                        ) + fadeIn(
+                            initialAlpha = 0f,
+                            animationSpec = tween(
+                                durationMillis = 1000,
+                                easing = LinearOutSlowInEasing
+                            )
+                        ),
+                        initialContentExit = slideOutVertically(
+                            targetOffsetY = { h -> h },
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = LinearOutSlowInEasing
+                            )
+                        ) + fadeOut(
+                            targetAlpha = 0f,
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = LinearOutSlowInEasing
+                            )
+                        ),
+                    )
+                }) { newList ->
+                    Card(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        elevation = 1.dp,
+                        shape = RoundedCornerShape(8.dp),
                     ) {
-                        items(
-                            count = searchResults.size,
-                            key = { index -> searchResults[index].orderNumber },
-                        ) { index ->
-                            val item = searchResults[index]
-                            ShippingItemRow(item)
-                            val notLastItem = index < searchResults.size - 1
-                            val moreThanOneItem = searchResults.size > 1
-                            if (notLastItem && moreThanOneItem) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = Color.Gray.copy(alpha = 0.2f)
-                                )
+                        LazyColumn(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            items(
+                                count = newList.size,
+                                key = { index -> newList[index].orderNumber },
+                            ) { index ->
+                                val item = newList[index]
+                                ShippingItemRow(item)
+                                val notLastItem = index < searchResults.size - 1
+                                val moreThanOneItem = searchResults.size > 1
+                                if (notLastItem && moreThanOneItem) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        color = Color.Gray.copy(alpha = 0.2f)
+                                    )
+                                }
                             }
                         }
                     }
