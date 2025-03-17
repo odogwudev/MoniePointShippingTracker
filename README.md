@@ -1,5 +1,6 @@
 # MoniePoint Shipping Tracker
 
+
 MoniePoint Shipping Tracker is an Android Jetpack Compose application that helps users:
 
 - View active shipments and shipping details (Home Screen).  
@@ -67,7 +68,7 @@ MoniePoint Shipping Tracker is an Android Jetpack Compose application that helps
 
 ## Demo Video
 
-[**Click here**](https://github.com/odogwudev/MoniePointShippingTracker/blob/14368639eadacdf86c01ee00895d24749788a474/monierecord.mp4) to watch a short demo of the MoniePoint Shipping Tracker in action.
+https://github.com/user-attachments/assets/cfcab653-4f87-480a-8458-5a3042745434
 
 ---
 
